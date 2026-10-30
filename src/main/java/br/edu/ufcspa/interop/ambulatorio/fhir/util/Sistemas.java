@@ -9,8 +9,8 @@ package br.edu.ufcspa.interop.ambulatorio.fhir.util;
  */
 public final class Sistemas {
 
-    public static final String CPF = "???";
-    public static final String CNS = "???";
+    public static final String CPF = "http://rnds.saude.gov.br/fhir/r4/NamingSystem/cpf";
+    public static final String CNS = "http://rnds.saude.gov.br/fhir/r4/NamingSystem/cns";
 
     public static final String LOINC = "???";
     public static final String UCUM = "???";
