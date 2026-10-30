@@ -11,10 +11,13 @@ import ca.uhn.fhir.rest.api.EncodingEnum;
 import ca.uhn.fhir.rest.openapi.OpenApiInterceptor;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.RestfulServer;
+import ca.uhn.fhir.rest.server.interceptor.CorsInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.ResponseHighlighterInterceptor;
+import net.sourceforge.plantuml.json.PrettyPrint;
 
 /**
- * Configuracao do servidor FHIR (HAPI FHIR Plain Server) dentro da aplicacao Spring Boot.
+ * Configuracao do servidor FHIR (HAPI FHIR Plain Server) dentro da aplicacao
+ * Spring Boot.
  *
  * Esta classe esta INCOMPLETA: resolva as LACUNAS 1 a 5.
  */
@@ -30,10 +33,14 @@ public class FhirConfig {
      */
     @Bean
     public FhirContext fhirContext() {
-        throw new IllegalStateException("LACUNA 1 nao resolvida: FhirConfig.fhirContext()");
+        // Cached para reaproveitar instancias abertas anteriormente
+        return FhirContext.forR4Cached();
     }
 
-    /** Todos os beans do Spring que implementam IResourceProvider chegam em providers. */
+    /**
+     * Todos os beans do Spring que implementam IResourceProvider chegam em
+     * providers.
+     */
     @Bean
     public RestfulServer restfulServer(FhirContext fhirContext, List<IResourceProvider> providers) {
 
@@ -43,24 +50,35 @@ public class FhirConfig {
         server.setServerVersion("1.0.0");
 
         // LACUNA 3
-        // Os providers chegam como parametro, mas o servidor ainda nao sabe que eles existem.
-        // Sem isso, o servidor sobe e responde o /metadata, mas nao declara nem atende nenhum recurso.
+        // Os providers chegam como parametro, mas o servidor ainda nao sabe que eles
+        // existem.
+        // Sem isso, o servidor sobe e responde o /metadata, mas nao declara nem atende
+        // nenhum recurso.
 
+        server.setResourceProviders(providers);
         server.setDefaultResponseEncoding(EncodingEnum.JSON);
 
         // LACUNA 4
-        // As respostas devem vir indentadas (legiveis por humanos) mesmo quando o cliente
+        // As respostas devem vir indentadas (legiveis por humanos) mesmo quando o
+        // cliente
         // nao pede ?_pretty=true.
 
         server.registerInterceptor(new ResponseHighlighterInterceptor());
 
         server.registerInterceptor(new OpenApiInterceptor());
 
+        // ativa identação mesmo sem pedir
+        server.setDefaultPrettyPrint(true);
         // LACUNA 5
-        // Na aula de SMART on FHIR vimos aplicacoes que rodam no navegador e chamam o servidor FHIR
-        // a partir de OUTRA origem (outro dominio/porta). O navegador bloqueia essas chamadas se o
-        // servidor nao responder com os cabecalhos de CORS. Habilite CORS neste servidor usando o
+        // Na aula de SMART on FHIR vimos aplicacoes que rodam no navegador e chamam o
+        // servidor FHIR
+        // a partir de OUTRA origem (outro dominio/porta). O navegador bloqueia essas
+        // chamadas se o
+        // servidor nao responder com os cabecalhos de CORS. Habilite CORS neste
+        // servidor usando o
         // mecanismo que o proprio HAPI FHIR oferece para isso.
+        CorsInterceptor cors = new CorsInterceptor();
+        server.registerInterceptor(cors);
 
         return server;
     }
@@ -70,9 +88,11 @@ public class FhirConfig {
 
         // LACUNA 2
         // O servidor FHIR deve responder sob http://localhost:8080/fhir
-        // (ex.: http://localhost:8080/fhir/metadata), SEM atrapalhar a API proprietaria em /api.
-        // Enquanto esta lacuna nao for resolvida, observe o que acontece com GET /api/pacientes.
-        ServletRegistrationBean<RestfulServer> registro = new ServletRegistrationBean<>(server);
+        // (ex.: http://localhost:8080/fhir/metadata), SEM atrapalhar a API proprietaria
+        // em /api.
+        // Enquanto esta lacuna nao for resolvida, observe o que acontece com GET
+        // /api/pacientes.
+        ServletRegistrationBean<RestfulServer> registro = new ServletRegistrationBean<>(server, "/fhir/*");
         registro.setName("FhirServlet");
 
         return registro;
