@@ -1,0 +1,32 @@
+{
+  "resourceType": "AllergyIntolerance",
+  "clinicalStatus": {
+    "coding": [
+      {
+        "system": "???",
+        "code": "active",
+        "display": "Active"
+      }
+    ]
+  },
+  "verificationStatus": {
+    "coding": [
+      {
+        "system": "???",
+        "code": "confirmed",
+        "display": "Confirmed"
+      }
+    ]
+  },
+  "type": "allergy",
+  "category": ["food"],
+  "criticality": "high",
+  "code": { "text": "Amendoim" },
+  "patient": { "reference": "Patient/3" },
+  "recordedDate": "2026-10-20",
+  "reaction": [
+    {
+      "manifestation": [ { "text": "Edema de glote" } ]
+    }
+  ]
+}

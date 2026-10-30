@@ -1,0 +1,31 @@
+{
+  "resourceType": "Observation",
+  "status": "final",
+  "category": [
+    {
+      "coding": [
+        {
+          "system": "???",
+          "code": "vital-signs"
+        }
+      ]
+    }
+  ],
+  "code": {
+    "coding": [
+      {
+        "system": "???",
+        "code": "???",
+        "display": "Body temperature"
+      }
+    ]
+  },
+  "subject": { "reference": "Patient/2" },
+  "effectiveDateTime": "2026-10-23T10:30:00-03:00",
+  "valueQuantity": {
+    "value": 100.2,
+    "unit": "°F",
+    "system": "???",
+    "code": "[degF]"
+  }
+}

@@ -1,0 +1,80 @@
+# Requisicoes prontas para testar o servidor.
+# Funcionam no IntelliJ IDEA (HTTP Client) e no VS Code (extensao REST Client).
+# Suba a aplicacao antes (mvn spring-boot:run) e clique no "play" ao lado de cada requisicao.
+
+@fhir = http://localhost:8080/fhir
+@api = http://localhost:8080/api
+
+### API proprietaria (ja funciona): pacientes no formato do sistema
+GET {{api}}/pacientes
+
+### API proprietaria: sinais vitais do paciente 1
+GET {{api}}/sinais-vitais?pacienteId=1
+
+### FHIR: CapabilityStatement (o que o servidor declara que sabe fazer)
+GET {{fhir}}/metadata
+
+### FHIR: ler Patient
+GET {{fhir}}/Patient/1
+
+### FHIR: Patient inexistente (esperado 404 com OperationOutcome)
+GET {{fhir}}/Patient/9999
+
+### FHIR: criar Patient (esperado 201 e cabecalho Location)
+POST {{fhir}}/Patient
+Content-Type: application/fhir+json
+
+< ./exemplos/patient-valido.json
+
+### FHIR: criar Patient invalido (esperado 4xx com OperationOutcome)
+POST {{fhir}}/Patient
+Content-Type: application/fhir+json
+
+< ./exemplos/patient-invalido-sem-cpf.json
+
+### FHIR: atualizar Patient/2 (PUT substitui o recurso inteiro; o id do corpo deve ser igual ao da URL)
+PUT {{fhir}}/Patient/2
+Content-Type: application/fhir+json
+
+{
+  "resourceType": "Patient",
+  "id": "2",
+  "identifier": [
+    { "use": "official", "system": "???", "value": "08301661305" }
+  ],
+  "active": true,
+  "name": [ { "use": "official", "family": "Oliveira Santos", "given": ["João", "Pedro"] } ],
+  "telecom": [ { "system": "phone", "value": "(51) 91234-0000" } ],
+  "gender": "male",
+  "birthDate": "1972-11-30"
+}
+
+### FHIR: ler Observation
+GET {{fhir}}/Observation/1
+
+### FHIR: criar Observation
+POST {{fhir}}/Observation
+Content-Type: application/fhir+json
+
+< ./exemplos/observation-valida.json
+
+### FHIR: criar Observation com unidade errada (esperado 4xx)
+POST {{fhir}}/Observation
+Content-Type: application/fhir+json
+
+< ./exemplos/observation-invalida-unidade.json
+
+### FHIR: ler AllergyIntolerance
+GET {{fhir}}/AllergyIntolerance/1
+
+### FHIR: criar AllergyIntolerance
+POST {{fhir}}/AllergyIntolerance
+Content-Type: application/fhir+json
+
+< ./exemplos/allergyintolerance-valida.json
+
+### FHIR: AllergyIntolerance que viola ait-2 (esperado 4xx)
+POST {{fhir}}/AllergyIntolerance
+Content-Type: application/fhir+json
+
+< ./exemplos/allergyintolerance-invalida-ait2.json

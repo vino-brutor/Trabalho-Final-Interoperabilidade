@@ -1,0 +1,28 @@
+{
+  "resourceType": "Patient",
+  "identifier": [
+    {
+      "use": "official",
+      "system": "???",
+      "value": "99351819019"
+    },
+    {
+      "system": "???",
+      "value": "709501234567893"
+    }
+  ],
+  "active": true,
+  "name": [
+    {
+      "use": "official",
+      "family": "Albuquerque Nunes",
+      "given": ["Beatriz", "Helena"]
+    }
+  ],
+  "telecom": [
+    { "system": "phone", "value": "(51) 95555-6006" },
+    { "system": "email", "value": "beatriz.nunes@exemplo.com" }
+  ],
+  "gender": "female",
+  "birthDate": "1990-06-25"
+}

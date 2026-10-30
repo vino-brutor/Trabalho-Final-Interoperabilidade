@@ -1,0 +1,24 @@
+{
+  "resourceType": "AllergyIntolerance",
+  "clinicalStatus": {
+    "coding": [
+      {
+        "system": "???",
+        "code": "active"
+      }
+    ]
+  },
+  "verificationStatus": {
+    "coding": [
+      {
+        "system": "???",
+        "code": "entered-in-error"
+      }
+    ]
+  },
+  "type": "allergy",
+  "category": ["medication"],
+  "code": { "text": "Ibuprofeno" },
+  "patient": { "reference": "Patient/2" },
+  "recordedDate": "2026-10-20"
+}

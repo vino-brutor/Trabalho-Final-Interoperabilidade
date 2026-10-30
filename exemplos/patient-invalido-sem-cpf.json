@@ -1,0 +1,18 @@
+{
+  "resourceType": "Patient",
+  "identifier": [
+    {
+      "system": "???",
+      "value": "709501234567800"
+    }
+  ],
+  "name": [
+    {
+      "use": "official",
+      "family": "Sem Documento",
+      "given": ["Fulano"]
+    }
+  ],
+  "gender": "male",
+  "birthDate": "1980-01-01"
+}

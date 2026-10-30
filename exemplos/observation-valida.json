@@ -1,0 +1,33 @@
+{
+  "resourceType": "Observation",
+  "status": "final",
+  "category": [
+    {
+      "coding": [
+        {
+          "system": "???",
+          "code": "vital-signs",
+          "display": "Vital Signs"
+        }
+      ]
+    }
+  ],
+  "code": {
+    "coding": [
+      {
+        "system": "???",
+        "code": "???",
+        "display": "Body temperature"
+      }
+    ],
+    "text": "Temperatura corporal"
+  },
+  "subject": { "reference": "Patient/2" },
+  "effectiveDateTime": "2026-10-23T10:30:00-03:00",
+  "valueQuantity": {
+    "value": 37.9,
+    "unit": "°C",
+    "system": "???",
+    "code": "???"
+  }
+}
