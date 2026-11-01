@@ -40,7 +40,7 @@ Content-Type: application/fhir+json
   "resourceType": "Patient",
   "id": "2",
   "identifier": [
-    { "use": "official", "system": "???", "value": "08301661305" }
+    { "use": "official", "system": "http://rnds.saude.gov.br/fhir/r4/NamingSystem/cpf", "value": "08301661305" }
   ],
   "active": true,
   "name": [ { "use": "official", "family": "Oliveira Santos", "given": ["João", "Pedro"] } ],

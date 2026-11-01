@@ -96,6 +96,8 @@ public class PatientMapper {
             patient.addTelecom(email);
         }
 
+        patient.setActive(paciente.isAtivo());
+
         return patient;
     }
 
@@ -185,5 +187,7 @@ public class PatientMapper {
                 }
             }
         }
+
+        destino.setAtivo(recurso.hasActive() ? recurso.getActive() : true);
     }
 }
