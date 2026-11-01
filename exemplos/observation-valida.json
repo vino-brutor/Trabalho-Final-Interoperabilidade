@@ -5,7 +5,7 @@
     {
       "coding": [
         {
-          "system": "???",
+          "system": "http://terminology.hl7.org/CodeSystem/observation-category",
           "code": "vital-signs",
           "display": "Vital Signs"
         }
@@ -15,8 +15,8 @@
   "code": {
     "coding": [
       {
-        "system": "???",
-        "code": "???",
+        "system": "http://loinc.org",
+        "code": "8310-5",
         "display": "Body temperature"
       }
     ],
@@ -27,7 +27,7 @@
   "valueQuantity": {
     "value": 37.9,
     "unit": "°C",
-    "system": "???",
-    "code": "???"
+    "system": "http://unitsofmeasure.org",
+    "code": "Cel"
   }
 }

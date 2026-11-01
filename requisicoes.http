@@ -52,6 +52,9 @@ Content-Type: application/fhir+json
 ### FHIR: ler Observation
 GET {{fhir}}/Observation/1
 
+### FHIR: Observation inexistente (esperado 404 com OperationOutcome)
+GET {{fhir}}/Observation/9999
+
 ### FHIR: criar Observation
 POST {{fhir}}/Observation
 Content-Type: application/fhir+json
@@ -63,6 +66,39 @@ POST {{fhir}}/Observation
 Content-Type: application/fhir+json
 
 < ./exemplos/observation-invalida-unidade.json
+
+### FHIR: atualizar Observation/1 (PUT substitui o recurso inteiro)
+PUT {{fhir}}/Observation/1
+Content-Type: application/fhir+json
+
+{
+  "resourceType": "Observation",
+  "id": "1",
+  "status": "corrected",
+  "category": [
+    {
+      "coding": [
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+          "code": "vital-signs"
+        }
+      ]
+    }
+  ],
+  "code": {
+    "coding": [
+      { "system": "http://loinc.org", "code": "8867-4", "display": "Heart rate" }
+    ]
+  },
+  "subject": { "reference": "Patient/1" },
+  "effectiveDateTime": "2026-10-23T10:30:00-03:00",
+  "valueQuantity": {
+    "value": 80,
+    "unit": "bpm",
+    "system": "http://unitsofmeasure.org",
+    "code": "/min"
+  }
+}
 
 ### FHIR: ler AllergyIntolerance
 GET {{fhir}}/AllergyIntolerance/1
