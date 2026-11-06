@@ -5,17 +5,13 @@ import br.edu.ufcspa.interop.ambulatorio.dominio.Sexo;
 import br.edu.ufcspa.interop.ambulatorio.fhir.util.ConversorDatas;
 import br.edu.ufcspa.interop.ambulatorio.fhir.util.Sistemas;
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
-
-import org.hl7.fhir.r4.model.Identifier;
-import org.hl7.fhir.r4.model.HumanName;
-import org.hl7.fhir.r4.model.Patient;
-import org.hl7.fhir.r4.model.ContactPoint.ContactPointSystem;
-import org.hl7.fhir.r4.model.codesystems.AdministrativeGenderEnumFactory;
-import org.springframework.stereotype.Component;
-import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
-import org.hl7.fhir.r4.model.Patient.ContactComponent;
 import org.hl7.fhir.r4.model.ContactPoint;
-import org.hl7.fhir.r4.model.DateType;
+import org.hl7.fhir.r4.model.ContactPoint.ContactPointSystem;
+import org.hl7.fhir.r4.model.Enumerations.AdministrativeGender;
+import org.hl7.fhir.r4.model.HumanName;
+import org.hl7.fhir.r4.model.Identifier;
+import org.hl7.fhir.r4.model.Patient;
+import org.springframework.stereotype.Component;
 
 /**
  * Traduz Paciente (modelo do sistema) para Patient (FHIR R4) e vice-versa.
@@ -31,24 +27,25 @@ public class PatientMapper {
         Patient patient = new Patient();
 
         if (paciente.getId() != null) {
-            patient.setId(String.valueOf(paciente.getId()));
+            patient.setId(paciente.getId().toString());
         }
 
-        if (paciente.getCpf() != null && !(paciente.getCpf().isBlank())) {
-            Identifier identifierCpf = patient.addIdentifier();
-            identifierCpf.setValue(paciente.getCpf());
-            identifierCpf.setSystem(Sistemas.CPF);
+        // CPF e CNS em identifier, cada um com o system da RNDS. Campo vazio nao vira elemento.
+        if (paciente.getCpf() != null && !paciente.getCpf().isBlank()) {
+            Identifier cpf = patient.addIdentifier();
+            cpf.setSystem(Sistemas.CPF);
+            cpf.setValue(paciente.getCpf());
         }
 
-        if (paciente.getCns() != null && !(paciente.getCns().isBlank())) {
-            Identifier identifierCns = patient.addIdentifier();
-            identifierCns.setValue(paciente.getCns());
-            identifierCns.setSystem(Sistemas.CNS);
+        if (paciente.getCns() != null && !paciente.getCns().isBlank()) {
+            Identifier cns = patient.addIdentifier();
+            cns.setSystem(Sistemas.CNS);
+            cns.setValue(paciente.getCns());
         }
 
+        // Nome e sobrenome em um unico HumanName: given = nome, family = sobrenome.
         boolean temNome = paciente.getNome() != null && !paciente.getNome().isBlank();
         boolean temSobrenome = paciente.getSobrenome() != null && !paciente.getSobrenome().isBlank();
-
         if (temNome || temSobrenome) {
             HumanName name = patient.addName();
             if (temNome) {
@@ -59,41 +56,25 @@ public class PatientMapper {
             }
         }
 
-        DateType birthDate = ConversorDatas.paraDateType(paciente.getDataNascimento());
-        patient.setBirthDateElement(birthDate);
+        if (paciente.getDataNascimento() != null) {
+            patient.setBirthDateElement(ConversorDatas.paraDateType(paciente.getDataNascimento()));
+        }
 
         if (paciente.getSexo() != null) {
-            switch (paciente.getSexo()) {
-                case FEMININO:
-                    patient.setGender(AdministrativeGender.FEMALE);
-                    break;
-                case MASCULINO:
-                    patient.setGender(AdministrativeGender.MALE);
-                    break;
-                case OUTRO:
-                    patient.setGender(AdministrativeGender.OTHER);
-                    break;
-                case NAO_INFORMADO:
-                    patient.setGender(AdministrativeGender.UNKNOWN);
-                    break;
-                default:
-                    patient.setGender(AdministrativeGender.UNKNOWN);
-                    break;
-            }
+            patient.setGender(generoFhir(paciente.getSexo()));
         }
 
-        if ((paciente.getTelefone() != null) && !(paciente.getTelefone().isBlank())) {
-            ContactPoint telephone = new ContactPoint();
-            telephone.setSystem(ContactPointSystem.PHONE);
-            telephone.setValue(paciente.getTelefone());
-            patient.addTelecom(telephone);
+        // Telefone e e-mail em telecom, distinguidos pelo system.
+        if (paciente.getTelefone() != null && !paciente.getTelefone().isBlank()) {
+            patient.addTelecom(new ContactPoint()
+                    .setSystem(ContactPointSystem.PHONE)
+                    .setValue(paciente.getTelefone()));
         }
 
-        if ((paciente.getEmail() != null) && !(paciente.getEmail().isBlank())) {
-            ContactPoint email = new ContactPoint();
-            email.setSystem(ContactPointSystem.EMAIL);
-            email.setValue(paciente.getEmail());
-            patient.addTelecom(email);
+        if (paciente.getEmail() != null && !paciente.getEmail().isBlank()) {
+            patient.addTelecom(new ContactPoint()
+                    .setSystem(ContactPointSystem.EMAIL)
+                    .setValue(paciente.getEmail()));
         }
 
         patient.setActive(paciente.isAtivo());
@@ -102,12 +83,11 @@ public class PatientMapper {
     }
 
     /**
-     * Usado no POST (create) e no PUT (update): copia o conteudo do Patient
-     * recebido para o Paciente.
-     * Se o Patient nao atender as regras do enunciado, recuse com o erro HTTP
-     * adequado.
+     * Usado no POST (create) e no PUT (update): copia o conteudo do Patient recebido para o Paciente.
+     * Se o Patient nao atender as regras do enunciado, recuse com o erro HTTP adequado.
      */
     public void paraDominio(Patient recurso, Paciente destino) {
+        // Limpa os campos opcionais: no PUT, o recurso substitui o anterior por inteiro.
         destino.setCpf(null);
         destino.setCns(null);
         destino.setSexo(null);
@@ -115,79 +95,86 @@ public class PatientMapper {
         destino.setEmail(null);
 
         for (Identifier identifier : recurso.getIdentifier()) {
-            if ((Sistemas.CPF.equals(identifier.getSystem()))) {
+            if (Sistemas.CPF.equals(identifier.getSystem())) {
                 destino.setCpf(identifier.getValue());
             }
-
             if (Sistemas.CNS.equals(identifier.getSystem())) {
                 destino.setCns(identifier.getValue());
             }
         }
 
+        // Recusar sem CPF ou com CPF que nao tenha exatamente 11 digitos.
         if (destino.getCpf() == null || !destino.getCpf().matches("[0-9]{11}")) {
-            throw new UnprocessableEntityException(
-                    "CPF é obrigatório e deve conter exatamente 11 dígitos");
+            throw new UnprocessableEntityException("CPF é obrigatório e deve conter exatamente 11 dígitos");
         }
 
+        // Recusar sem nome ou sem sobrenome.
         if (!recurso.hasName()) {
-            throw new UnprocessableEntityException(
-                "Nome é obrigatório"
-            );
+            throw new UnprocessableEntityException("Nome é obrigatório");
         }
-
         HumanName name = recurso.getNameFirstRep();
-        String prenome = name.getGivenAsSingleString();
+        String nome = name.getGivenAsSingleString();
         String sobrenome = name.getFamily();
-
-        if ((prenome == null || sobrenome == null) || (prenome.isBlank() || sobrenome.isBlank())) {
-            throw new UnprocessableEntityException(
-                "Prenome e sobrenome são obrigatórios"
-            );
+        if (nome == null || nome.isBlank() || sobrenome == null || sobrenome.isBlank()) {
+            throw new UnprocessableEntityException("Nome e sobrenome são obrigatórios");
         }
-
-        destino.setNome(prenome);
+        destino.setNome(nome);
         destino.setSobrenome(sobrenome);
 
         try {
             destino.setDataNascimento(ConversorDatas.paraLocalDate(recurso.getBirthDateElement()));
         } catch (IllegalArgumentException e) {
-            throw new UnprocessableEntityException("Data de nascimento invalida");
-        }       
-
-        if (recurso.hasGender()) {
-            switch (recurso.getGender()) {
-            case FEMALE:
-                destino.setSexo(Sexo.FEMININO);
-                break;
-            case MALE:
-                destino.setSexo(Sexo.MASCULINO);
-                break;
-            case OTHER:
-                destino.setSexo(Sexo.OUTRO);
-                break;
-            case UNKNOWN:
-                destino.setSexo(Sexo.NAO_INFORMADO);
-                break;
-            default:
-                break;
-            }
+            throw new UnprocessableEntityException("Data de nascimento inválida ou incompleta");
         }
 
-        for (ContactPoint contact : recurso.getTelecom()) {
-            if (contact.hasSystem()) {
-                switch (contact.getSystem()) {
-                    case PHONE:
-                        destino.setTelefone(contact.getValue());
-                        break;
-                    case EMAIL:
-                        destino.setEmail(contact.getValue());
-                        break;
-                    default:
-                        break;
-                }
+        if (recurso.hasGender()) {
+            destino.setSexo(sexoDominio(recurso.getGender()));
+        }
+
+        for (ContactPoint contato : recurso.getTelecom()) {
+            if (!contato.hasSystem()) {
+                continue;
+            }
+            switch (contato.getSystem()) {
+                case PHONE:
+                    destino.setTelefone(contato.getValue());
+                    break;
+                case EMAIL:
+                    destino.setEmail(contato.getValue());
+                    break;
+                default:
+                    break;
             }
         }
 
         destino.setAtivo(recurso.hasActive() ? recurso.getActive() : true);
+    }
+
+    private AdministrativeGender generoFhir(Sexo sexo) {
+        switch (sexo) {
+            case MASCULINO:
+                return AdministrativeGender.MALE;
+            case FEMININO:
+                return AdministrativeGender.FEMALE;
+            case OUTRO:
+                return AdministrativeGender.OTHER;
+            case NAO_INFORMADO:
+            default:
+                return AdministrativeGender.UNKNOWN;
+        }
+    }
+
+    private Sexo sexoDominio(AdministrativeGender genero) {
+        switch (genero) {
+            case MALE:
+                return Sexo.MASCULINO;
+            case FEMALE:
+                return Sexo.FEMININO;
+            case OTHER:
+                return Sexo.OUTRO;
+            case UNKNOWN:
+            default:
+                return Sexo.NAO_INFORMADO;
+        }
     }
 }

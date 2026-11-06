@@ -24,10 +24,8 @@ import ca.uhn.fhir.rest.server.exceptions.ResourceVersionConflictException;
  *   GET  /fhir/Patient/{id}   (read)
  *   POST /fhir/Patient        (create)
  *   PUT  /fhir/Patient/{id}   (update)
- * usando PacienteServico (ja pronto) e PatientMapper (a implementar).
  *
- * Lembre: o servidor so passa a enxergar este provider quando ele for um IResourceProvider
- * (veja como FhirConfig recebe os providers) e a LACUNA 3 estiver resolvida.
+ * Usa PacienteServico e PatientMapper para as tres interacoes.
  */
 @Component
 public class PatientResourceProvider implements IResourceProvider {
@@ -45,10 +43,9 @@ public class PatientResourceProvider implements IResourceProvider {
         return Patient.class;
     }
 
-    @Read 
+    @Read
     public Patient getPatient(@IdParam IdType id) {
         long idPaciente;
-
         try {
             idPaciente = Long.valueOf(id.getIdPart());
         } catch (NumberFormatException e) {
@@ -56,14 +53,12 @@ public class PatientResourceProvider implements IResourceProvider {
         }
 
         Paciente paciente = pacienteServico.buscarPorId(idPaciente)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException("Paciente não encontrado")
-                    );
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
 
         return patientMapper.paraFhir(paciente);
     }
-    
-    @Create  
+
+    @Create
     public MethodOutcome postPatient(@ResourceParam Patient recurso) {
         Paciente paciente = new Paciente();
 
@@ -80,12 +75,9 @@ public class PatientResourceProvider implements IResourceProvider {
         outcome.setId(new IdType("Patient", salvo.getId().toString()));
         return outcome;
     }
-    
+
     @Update
-    public MethodOutcome putPatient(
-        @IdParam IdType id,
-        @ResourceParam Patient recurso
-    ) {
+    public MethodOutcome putPatient(@IdParam IdType id, @ResourceParam Patient recurso) {
         long pacienteId;
         try {
             pacienteId = Long.valueOf(id.getIdPart());
@@ -93,10 +85,8 @@ public class PatientResourceProvider implements IResourceProvider {
             throw new InvalidRequestException("ID do paciente deve ser um número inteiro");
         }
 
-        if (!recurso.hasId()
-                || !id.getIdPart().equals(recurso.getIdElement().getIdPart())) {
-            throw new InvalidRequestException(
-                    "O ID do corpo deve ser igual ao ID da URL");
+        if (!recurso.hasId() || !id.getIdPart().equals(recurso.getIdElement().getIdPart())) {
+            throw new InvalidRequestException("O ID do corpo deve ser igual ao ID da URL");
         }
 
         Paciente paciente = pacienteServico.buscarPorId(pacienteId)
@@ -104,10 +94,9 @@ public class PatientResourceProvider implements IResourceProvider {
 
         patientMapper.paraDominio(recurso, paciente);
 
-        Paciente pacienteComCpf = pacienteServico.buscarPorCpf(paciente.getCpf()).orElse(null);
-
-        if (pacienteComCpf != null && !paciente.getId().equals(pacienteComCpf.getId())) {
-            throw new ResourceVersionConflictException("Já existe um paciente cadastrado com esse CPF"); 
+        Paciente comMesmoCpf = pacienteServico.buscarPorCpf(paciente.getCpf()).orElse(null);
+        if (comMesmoCpf != null && !comMesmoCpf.getId().equals(paciente.getId())) {
+            throw new ResourceVersionConflictException("Já existe um paciente cadastrado com esse CPF");
         }
 
         Paciente salvo = pacienteServico.salvar(paciente);

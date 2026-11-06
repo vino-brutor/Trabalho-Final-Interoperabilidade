@@ -45,7 +45,6 @@ public class ObservationResourceProvider implements IResourceProvider {
     @Read
     public Observation getObservation(@IdParam IdType id) {
         long idSinalVital;
-
         try {
             idSinalVital = Long.valueOf(id.getIdPart());
         } catch (NumberFormatException e) {
@@ -53,9 +52,7 @@ public class ObservationResourceProvider implements IResourceProvider {
         }
 
         SinalVital sinalVital = sinalVitalServico.buscarPorId(idSinalVital)
-                .orElseThrow(
-                        () -> new ResourceNotFoundException("Sinal vital não encontrado")
-                    );
+                .orElseThrow(() -> new ResourceNotFoundException("Sinal vital não encontrado"));
 
         return observationMapper.paraFhir(sinalVital);
     }
@@ -75,10 +72,7 @@ public class ObservationResourceProvider implements IResourceProvider {
     }
 
     @Update
-    public MethodOutcome putObservation(
-        @IdParam IdType id,
-        @ResourceParam Observation recurso
-    ) {
+    public MethodOutcome putObservation(@IdParam IdType id, @ResourceParam Observation recurso) {
         long sinalVitalId;
         try {
             sinalVitalId = Long.valueOf(id.getIdPart());
@@ -86,10 +80,8 @@ public class ObservationResourceProvider implements IResourceProvider {
             throw new InvalidRequestException("ID do sinal vital deve ser um número inteiro");
         }
 
-        if (!recurso.hasId()
-                || !id.getIdPart().equals(recurso.getIdElement().getIdPart())) {
-            throw new InvalidRequestException(
-                    "O ID do corpo deve ser igual ao ID da URL");
+        if (!recurso.hasId() || !id.getIdPart().equals(recurso.getIdElement().getIdPart())) {
+            throw new InvalidRequestException("O ID do corpo deve ser igual ao ID da URL");
         }
 
         SinalVital sinalVital = sinalVitalServico.buscarPorId(sinalVitalId)

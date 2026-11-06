@@ -16,8 +16,8 @@ public final class Sistemas {
     public static final String UCUM = "http://unitsofmeasure.org";
     public static final String OBSERVATION_CATEGORY = "http://terminology.hl7.org/CodeSystem/observation-category";
 
-    public static final String ALLERGY_CLINICAL = "???";
-    public static final String ALLERGY_VERIFICATION = "???";
+    public static final String ALLERGY_CLINICAL = "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical";
+    public static final String ALLERGY_VERIFICATION = "http://terminology.hl7.org/CodeSystem/allergyintolerance-verification";
 
     private Sistemas() {
     }
